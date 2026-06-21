@@ -678,19 +678,24 @@
     const submitBtn = document.querySelector('#step3 .btn-primary');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
 
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, val]) => formData.append(key, val));
+
     fetch('https://formspree.io/f/xzdlpwlw', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body:    JSON.stringify(data)
+      headers: { 'Accept': 'application/json' },
+      body:    formData
     })
-    .then(res => {
-      if (res.ok) {
+    .then(res => res.json().then(json => ({ ok: res.ok, json })))
+    .then(({ ok, json }) => {
+      if (ok) {
         document.getElementById('refDisplay').textContent = ref;
         for (let i = 1; i <= 3; i++) document.getElementById('step'+i).classList.remove('active');
         document.getElementById('dotsRow').style.display = 'none';
         document.getElementById('successScreen').classList.add('show');
         document.getElementById('progressBar').style.width = '100%';
       } else {
+        console.error('Formspree error:', json);
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Registration ✓'; }
         alert('Submission failed. Please try again or proceed to the reception desk directly.');
       }
