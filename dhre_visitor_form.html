@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DHRE Innovation Lab — Visitor Registration</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      background: #1F3864;
+      padding: 28px 40px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .logo-mark {
+      width: 52px; height: 52px;
+      background: #C9A84C;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900; color: #1F3864;
+      flex-shrink: 0;
+      letter-spacing: -1px;
+    }
+    .header-text h1 {
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .header-text p {
+      color: #9DC3E6;
+      font-size: 13px;
+      margin-top: 3px;
+    }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      width: 100%;
+      background: #162d54;
+      height: 4px;
+    }
+    .progress-bar {
+      height: 4px;
+      background: #C9A84C;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(31,56,100,0.10);
+      width: 100%;
+      max-width: 700px;
+      margin: 36px 20px 40px;
+      overflow: hidden;
+    }
+
+    /* ── Step panels ── */
+    .step { display: none; padding: 40px 44px 36px; }
+    .step.active { display: block; }
+
+    .step-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #C9A84C;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .step h2 {
+      font-size: 22px;
+      color: #1F3864;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .step .subtitle {
+      font-size: 14px;
+      color: #6b7a99;
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+
+    /* ── Visit type tiles ── */
+    .tiles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .tile {
+      border: 2px solid #dde4f0;
+      border-radius: 12px;
+      padding: 20px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      user-select: none;
+      background: #f9fafd;
+    }
+    .tile:hover { border-color: #2E75B6; background: #eef4fb; }
+    .tile.selected { border-color: #1F3864; background: #eef4fb; box-shadow: 0 0 0 3px rgba(31,56,100,0.12); }
+    .tile .icon { font-size: 32px; margin-bottom: 10px; }
+    .tile .tile-label { font-size: 14px; font-weight: 600; color: #1F3864; line-height: 1.3; }
+    .tile .tile-sub { font-size: 12px; color: #8899bb; margin-top: 4px; }
+
+    /* ── Form fields ── */
+    .field { margin-bottom: 22px; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1F3864;
+      margin-bottom: 7px;
+    }
+    .field label .req { color: #C9A84C; margin-left: 3px; }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1.5px solid #dde4f0;
+      border-radius: 10px;
+      font-size: 15px;
+      color: #1a2540;
+      background: #f9fafd;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: inherit;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      border-color: #2E75B6;
+      box-shadow: 0 0 0 3px rgba(46,117,182,0.12);
+      background: #fff;
+    }
+    .field textarea { resize: none; height: 90px; }
+    .field .hint { font-size: 11px; color: #9aabca; margin-top: 5px; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* ── Optional badge ── */
+    .opt-badge {
+      font-size: 10px;
+      font-weight: 600;
+      background: #eef4fb;
+      color: #6b8ab8;
+      padding: 2px 7px;
+      border-radius: 20px;
+      margin-left: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Conditional sections ── */
+    .cond { display: none; }
+    .cond.show { display: block; }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1.5px solid #eef1f8;
+      margin: 6px 0 24px;
+    }
+
+    /* ── Buttons ── */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+      justify-content: flex-end;
+    }
+    .btn {
+      padding: 15px 32px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: #1F3864;
+      color: #fff;
+      min-width: 160px;
+    }
+    .btn-primary:hover { background: #162d54; }
+    .btn-secondary {
+      background: #eef1f8;
+      color: #1F3864;
+    }
+    .btn-secondary:hover { background: #dde4f0; }
+
+    /* ── Step dots ── */
+    .dots {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      padding: 0 44px 28px;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #dde4f0;
+      transition: background 0.3s;
+    }
+    .dot.active { background: #1F3864; }
+    .dot.done { background: #C9A84C; }
+
+    /* ── Success screen ── */
+    .success {
+      display: none;
+      text-align: center;
+      padding: 60px 44px;
+    }
+    .success.show { display: block; }
+    .success-icon {
+      width: 80px; height: 80px;
+      background: #E2EFDA;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 24px;
+    }
+    .success h2 { font-size: 24px; color: #1F3864; margin-bottom: 12px; }
+    .success p { color: #6b7a99; font-size: 15px; line-height: 1.6; margin-bottom: 8px; }
+    .ref-box {
+      background: #f0f4f8;
+      border-radius: 10px;
+      padding: 16px 24px;
+      margin: 24px auto;
+      max-width: 320px;
+    }
+    .ref-box .ref-label { font-size: 11px; color: #9aabca; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+    .ref-box .ref-num { font-size: 26px; font-weight: 700; color: #1F3864; letter-spacing: 2px; margin-top: 4px; }
+    .return-btn {
+      margin-top: 12px;
+      padding: 14px 36px;
+      background: #1F3864;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .return-btn:hover { background: #162d54; }
+
+    /* ── Error state ── */
+    .field input.error, .field textarea.error, .field select.error {
+      border-color: #e05c5c;
+      box-shadow: 0 0 0 3px rgba(224,92,92,0.10);
+    }
+    .err-msg { font-size: 11px; color: #e05c5c; margin-top: 4px; display: none; }
+    .err-msg.show { display: block; }
+
+    @media (max-width: 520px) {
+      .tiles { grid-template-columns: 1fr; }
+      .two-col { grid-template-columns: 1fr; }
+      .step { padding: 28px 22px 24px; }
+      .dots { padding: 0 22px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">DH</div>
+  <div class="header-text">
+    <h1>Innovation Lab — Visitor Registration</h1>
+    <p>6th Floor, Galleries 4, Jebel Ali, Dubai</p>
+  </div>
+</header>
+<div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+<div class="card">
+
+  <!-- ── STEP 1: Visit Type ───────────────────────────── -->
+  <div class="step active" id="step1">
+    <div class="step-label">Step 1 of 3</div>
+    <h2>Welcome! What brings you here today?</h2>
+    <p class="subtitle">Please select the purpose of your visit so we can assist you better.</p>
+
+    <div class="tiles">
+      <div class="tile" onclick="selectType('appointment')" id="tile-appointment">
+        <div class="icon">📋</div>
+        <div class="tile-label">Guest Appointment</div>
+        <div class="tile-sub">I have or need a meeting</div>
+      </div>
+      <div class="tile" onclick="selectType('roombook')" id="tile-roombook">
+        <div class="icon">📅</div>
+        <div class="tile-label">Meeting Room Booking</div>
+        <div class="tile-sub">Book a room — now or later</div>
+      </div>
+      <div class="tile" onclick="selectType('documents')" id="tile-documents">
+        <div class="icon">📄</div>
+        <div class="tile-label">Submit Documents</div>
+        <div class="tile-sub">Deliver files or applications</div>
+      </div>
+      <div class="tile" onclick="selectType('other')" id="tile-other">
+        <div class="icon">💬</div>
+        <div class="tile-label">Other Inquiry</div>
+        <div class="tile-sub">General visit or question</div>
+      </div>
+    </div>
+    <p class="err-msg" id="typeErr" style="margin-top:6px;">Please select a visit type to continue.</p>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goStep(2)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: Visitor Details ──────────────────────── -->
+  <div class="step" id="step2">
+    <div class="step-label">Step 2 of 3</div>
+    <h2>Your Details</h2>
+    <p class="subtitle">Please fill in your information so our team can assist you.</p>
+
+    <div class="two-col">
+      <div class="field">
+        <label>Full Name <span class="req">*</span></label>
+        <input type="text" id="fullName" placeholder="e.g. Ahmed Al Mansouri" />
+        <p class="err-msg" id="nameErr">Please enter your full name.</p>
+      </div>
+      <div class="field">
+        <label>Company / Organisation <span class="req">*</span></label>
+        <input type="text" id="company" placeholder="e.g. Dubai Holding" />
+        <p class="err-msg" id="companyErr">Please enter your company name.</p>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="field">
+        <label>Contact Number <span class="req">*</span></label>
+        <input type="tel" id="phone" placeholder="e.g. +971 50 123 4567" />
+        <p class="err-msg" id="phoneErr">Please enter your contact number.</p>
+      </div>
+      <div class="field">
+        <label>Email Address <span class="opt-badge">Optional</span></label>
+        <input type="email" id="email" placeholder="e.g. ahmed@company.com" />
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- Conditional: Appointment -->
+    <div class="cond" id="cond-appointment">
+      <div class="field">
+        <label>Person / Team You're Here to Meet <span class="req">*</span></label>
+        <select id="meetPerson">
+          <option value="">— Select a team member —</option>
+          <option>Ms. Mariam Juma — COO, Operations Management</option>
+          <option>Mr. Eisa Al Ali — Executive Director, Business Transformation</option>
+          <option>Ms. Hanan Bajjash — Associate Director, Innovation Hub</option>
+          <option>Mr. Prince Pipera — PropTech Manager</option>
+          <option>Mr. Vivekanand Aradwad — Technology Operations Specialist</option>
+          <option>Mr. Tamer Elgohari — Director, Virtual Design & Construction</option>
+          <option>Mr. Asim Rehmani — Senior Manager, BIM</option>
+          <option>Ms. Renee Vogel — Manager, Cost Control</option>
+          <option>Mr. Walid Mohamed — Senior Manager, VDC</option>
+          <option>Ms. Manette Lauzon — Executive, Office Support</option>
+          <option>Other / Not sure</option>
+        </select>
+        <p class="err-msg" id="meetErr">Please select who you are here to meet.</p>
+      </div>
+      <div class="field">
+        <label>Purpose of Visit <span class="req">*</span></label>
+        <textarea id="purposeAppt" placeholder="Briefly describe the reason for your visit…"></textarea>
+        <p class="err-msg" id="purposeApptErr">Please describe the purpose of your visit.</p>
+      </div>
+    </div>
+
+    <!-- Conditional: Room Booking -->
+    <div class="cond" id="cond-roombook">
+      <div class="two-col">
+        <div class="field">
+          <label>Booking Type <span class="req">*</span></label>
+          <select id="bookType">
+            <option value="">— Select —</option>
+            <option value="now">Right now (On-the-Spot)</option>
+            <option value="advance">Advance (future date)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Number of Attendees <span class="req">*</span></label>
+          <select id="attendees">
+            <option value="">— Select —</option>
+            <option>1–5 people</option>
+            <option>6–10 people</option>
+            <option>11–20 people</option>
+          </select>
+        </div>
+      </div>
+      <div class="two-col" id="advanceDateRow" style="display:none;">
+        <div class="field">
+          <label>Preferred Date <span class="req">*</span></label>
+          <input type="date" id="bookDate" />
+        </div>
+        <div class="field">
+          <label>Start & End Time <span class="req">*</span></label>
+          <input type="text" id="bookTime" placeholder="e.g. 10:00 AM – 12:00 PM" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Setup Requirements <span class="opt-badge">Optional</span></label>
+        <input type="text" id="setupReq" placeholder="e.g. Screen, whiteboard, conference call, AV" />
+      </div>
+    </div>
+
+    <!-- Conditional: Documents -->
+    <div class="cond" id="cond-documents">
+      <div class="field">
+        <label>Department / Recipient <span class="req">*</span></label>
+        <select id="docDept">
+          <option value="">— Select department —</option>
+          <option>Innovation Hub</option>
+          <option>Business Transformation (General)</option>
+          <option>Virtual Design & Construction (VDC)</option>
+          <option>Cost Control</option>
+          <option>Procurement</option>
+          <option>Facilities Management</option>
+          <option>Executive Office</option>
+          <option>Not sure</option>
+        </select>
+        <p class="err-msg" id="deptErr">Please select a department.</p>
+      </div>
+      <div class="two-col">
+        <div class="field">
+          <label>Reference Number <span class="opt-badge">Optional</span></label>
+          <input type="text" id="refNum" placeholder="e.g. APP-2026-0012" />
+        </div>
+        <div class="field">
+          <label>Purpose of Submission <span class="req">*</span></label>
+          <input type="text" id="docPurpose" placeholder="e.g. Property application, contract renewal" />
+          <p class="err-msg" id="docPurposeErr">Please describe the purpose.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conditional: Other -->
+    <div class="cond" id="cond-other">
+      <div class="field">
+        <label>How Can We Help You? <span class="req">*</span></label>
+        <textarea id="otherPurpose" placeholder="Please describe your inquiry or the reason for your visit…"></textarea>
+        <p class="err-msg" id="otherErr">Please describe your inquiry.</p>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ── STEP 3: Review & Submit ───────────────────────── -->
+  <div class="step" id="step3">
+    <div class="step-label">Step 3 of 3</div>
+    <h2>Review & Confirm</h2>
+    <p class="subtitle">Please confirm your details before submitting.</p>
+
+    <div style="background:#f0f4f8; border-radius:12px; padding:22px 24px; margin-bottom:8px;">
+      <div id="summaryContent" style="font-size:14px; color:#1a2540; line-height:2;"></div>
+    </div>
+    <p style="font-size:12px; color:#9aabca; margin-bottom:4px;">By submitting, you agree that your details will be used solely for this visit.</p>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(2)">← Edit</button>
+      <button class="btn btn-primary" onclick="submitForm()">Submit Registration ✓</button>
+    </div>
+  </div>
+
+  <!-- ── Success ───────────────────────────────────────── -->
+  <div class="success" id="successScreen">
+    <div class="success-icon">✅</div>
+    <h2>Registration Complete!</h2>
+    <p>Thank you! Your registration has been submitted and our team has been notified.</p>
+    <p>Please proceed to the <strong>reception desk</strong> and share your reference number below. We look forward to assisting you! 😊</p>
+    <div class="ref-box">
+      <div class="ref-label">Your Reference Number</div>
+      <div class="ref-num" id="refDisplay">—</div>
+    </div>
+    <p style="font-size:13px; color:#9aabca;">Please keep this reference number for your records.<br/>You may also be asked for it by the reception team.</p>
+    <button class="return-btn" onclick="resetForm()">Register Another Visitor</button>
+  </div>
+
+  <!-- ── Step dots ── -->
+  <div class="dots" id="dotsRow">
+    <div class="dot active" id="dot1"></div>
+    <div class="dot" id="dot2"></div>
+    <div class="dot" id="dot3"></div>
+  </div>
+
+</div>
+
+<script>
+  let visitType = '';
+  let currentStep = 1;
+  const totalSteps = 3;
+
+  function selectType(type) {
+    visitType = type;
+    document.querySelectorAll('.tile').forEach(t => t.classList.remove('selected'));
+    document.getElementById('tile-' + type).classList.add('selected');
+    document.getElementById('typeErr').classList.remove('show');
+    // show/hide booking type date row if roombook
+    if (type === 'roombook') {
+      document.getElementById('bookType').addEventListener('change', toggleDateRow);
+    }
+  }
+
+  function toggleDateRow() {
+    const val = document.getElementById('bookType').value;
+    document.getElementById('advanceDateRow').style.display = val === 'advance' ? 'grid' : 'none';
+  }
+
+  function showConditionals() {
+    ['appointment','roombook','documents','other'].forEach(t => {
+      const el = document.getElementById('cond-' + t);
+      if (el) el.classList.toggle('show', t === visitType);
+    });
+  }
+
+  function goStep(n) {
+    if (n === 2 && currentStep === 1) {
+      if (!visitType) { document.getElementById('typeErr').classList.add('show'); return; }
+      showConditionals();
+    }
+    if (n === 3 && currentStep === 2) {
+      if (!validateStep2()) return;
+      buildSummary();
+    }
+    document.getElementById('step' + currentStep).classList.remove('active');
+    document.getElementById('step' + n).classList.add('active');
+    currentStep = n;
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const pct = ((currentStep - 1) / totalSteps) * 100 + (100 / totalSteps * 0.5);
+    document.getElementById('progressBar').style.width = Math.min(pct, 95) + '%';
+    for (let i = 1; i <= 3; i++) {
+      const d = document.getElementById('dot' + i);
+      d.classList.remove('active','done');
+      if (i < currentStep) d.classList.add('done');
+      else if (i === currentStep) d.classList.add('active');
+    }
+  }
+
+  function validateStep2() {
+    let ok = true;
+    const req = (id, errId) => {
+      const el = document.getElementById(id);
+      const em = document.getElementById(errId);
+      if (!el || !em) return;
+      const empty = el.value.trim() === '' || el.value === '';
+      el.classList.toggle('error', empty);
+      em.classList.toggle('show', empty);
+      if (empty) ok = false;
+    };
+
+    req('fullName','nameErr');
+    req('company','companyErr');
+    req('phone','phoneErr');
+
+    if (visitType === 'appointment') { req('meetPerson','meetErr'); req('purposeAppt','purposeApptErr'); }
+    if (visitType === 'documents')   { req('docDept','deptErr'); req('docPurpose','docPurposeErr'); }
+    if (visitType === 'other')       { req('otherPurpose','otherErr'); }
+    return ok;
+  }
+
+  function v(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  function buildSummary() {
+    const typeLabels = {
+      appointment: '📋 Guest Appointment',
+      roombook:    '📅 Meeting Room Booking',
+      documents:   '📄 Document Submission',
+      other:       '💬 General Inquiry'
+    };
+
+    let rows = [
+      ['Visit Type',    typeLabels[visitType] || '—'],
+      ['Full Name',     v('fullName')],
+      ['Company',       v('company')],
+      ['Contact',       v('phone')],
+    ];
+    if (v('email')) rows.push(['Email', v('email')]);
+
+    if (visitType === 'appointment') {
+      rows.push(['Meeting with', v('meetPerson')]);
+      rows.push(['Purpose',      v('purposeAppt')]);
+    }
+    if (visitType === 'roombook') {
+      rows.push(['Booking Type',  v('bookType') === 'now' ? 'On-the-Spot (right now)' : 'Advance booking']);
+      rows.push(['Attendees',     v('attendees')]);
+      if (v('bookDate')) rows.push(['Date', v('bookDate')]);
+      if (v('bookTime')) rows.push(['Time', v('bookTime')]);
+      if (v('setupReq')) rows.push(['Setup', v('setupReq')]);
+    }
+    if (visitType === 'documents') {
+      rows.push(['Department',   v('docDept')]);
+      rows.push(['Purpose',      v('docPurpose')]);
+      if (v('refNum')) rows.push(['Reference No.', v('refNum')]);
+    }
+    if (visitType === 'other') {
+      rows.push(['Inquiry', v('otherPurpose')]);
+    }
+
+    const html = rows.map(([k,val]) =>
+      `<div><span style="color:#6b7a99;min-width:130px;display:inline-block;">${k}</span><strong>${val || '—'}</strong></div>`
+    ).join('');
+    document.getElementById('summaryContent').innerHTML = html;
+  }
+
+  function generateRef() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    return `VIS-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${Math.floor(1000+Math.random()*9000)}`;
+  }
+
+  function submitForm() {
+    const ref = generateRef();
+    document.getElementById('refDisplay').textContent = ref;
+
+    // Hide all steps + dots, show success
+    for (let i = 1; i <= 3; i++) document.getElementById('step'+i).classList.remove('active');
+    document.getElementById('dotsRow').style.display = 'none';
+    document.getElementById('successScreen').classList.add('show');
+    document.getElementById('progressBar').style.width = '100%';
+  }
+
+  function resetForm() {
+    visitType = '';
+    currentStep = 1;
+    document.querySelectorAll('.tile').forEach(t => t.classList.remove('selected'));
+    document.querySelectorAll('input,textarea,select').forEach(el => el.value = '');
+    document.querySelectorAll('.err-msg').forEach(el => el.classList.remove('show'));
+    document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+    document.querySelectorAll('.cond').forEach(el => el.classList.remove('show'));
+    document.getElementById('advanceDateRow').style.display = 'none';
+    document.getElementById('successScreen').classList.remove('show');
+    document.getElementById('dotsRow').style.display = 'flex';
+    document.getElementById('step1').classList.add('active');
+    document.getElementById('progressBar').style.width = '0%';
+    updateProgress();
+  }
+</script>
+</body>
+</html>
