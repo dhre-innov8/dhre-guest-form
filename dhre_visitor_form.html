@@ -635,13 +635,70 @@
 
   function submitForm() {
     const ref = generateRef();
-    document.getElementById('refDisplay').textContent = ref;
 
-    // Hide all steps + dots, show success
-    for (let i = 1; i <= 3; i++) document.getElementById('step'+i).classList.remove('active');
-    document.getElementById('dotsRow').style.display = 'none';
-    document.getElementById('successScreen').classList.add('show');
-    document.getElementById('progressBar').style.width = '100%';
+    // Build data payload for Formspree
+    const typeLabels = {
+      appointment: 'Guest Appointment',
+      roombook:    'Meeting Room Booking',
+      documents:   'Document Submission',
+      other:       'General Inquiry'
+    };
+
+    const data = {
+      _subject:          'DHRE Visitor Registration — ' + (typeLabels[visitType] || visitType),
+      reference_number:  ref,
+      visit_type:        typeLabels[visitType] || visitType,
+      full_name:         v('fullName'),
+      company:           v('company'),
+      contact_number:    v('phone'),
+      email:             v('email') || '—',
+    };
+
+    if (visitType === 'appointment') {
+      data.meeting_with  = v('meetPerson');
+      data.purpose       = v('purposeAppt');
+    }
+    if (visitType === 'roombook') {
+      data.booking_type  = v('bookType') === 'now' ? 'On-the-Spot' : 'Advance';
+      data.attendees     = v('attendees');
+      data.date          = v('bookDate') || '—';
+      data.time          = v('bookTime') || '—';
+      data.setup         = v('setupReq') || '—';
+    }
+    if (visitType === 'documents') {
+      data.department    = v('docDept');
+      data.purpose       = v('docPurpose');
+      data.reference_no  = v('refNum') || '—';
+    }
+    if (visitType === 'other') {
+      data.inquiry       = v('otherPurpose');
+    }
+
+    // Disable submit button to prevent double-submit
+    const submitBtn = document.querySelector('#step3 .btn-primary');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
+
+    fetch('https://formspree.io/f/xzdlpwlw', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body:    JSON.stringify(data)
+    })
+    .then(res => {
+      if (res.ok) {
+        document.getElementById('refDisplay').textContent = ref;
+        for (let i = 1; i <= 3; i++) document.getElementById('step'+i).classList.remove('active');
+        document.getElementById('dotsRow').style.display = 'none';
+        document.getElementById('successScreen').classList.add('show');
+        document.getElementById('progressBar').style.width = '100%';
+      } else {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Registration ✓'; }
+        alert('Submission failed. Please try again or proceed to the reception desk directly.');
+      }
+    })
+    .catch(() => {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Registration ✓'; }
+      alert('Network error. Please proceed to the reception desk directly.');
+    });
   }
 
   function resetForm() {
